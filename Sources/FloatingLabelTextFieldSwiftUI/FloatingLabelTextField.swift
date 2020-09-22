@@ -7,6 +7,18 @@
 //
 
 import SwiftUI
+import Combine
+
+
+class FloatingLabelForceUpdater: ObservableObject {
+    
+    @Published var forceUpdateState: Bool
+    
+    init(forceUpdateState: Bool) {
+        self.forceUpdateState = forceUpdateState
+    }
+}
+
 
 //MARK: FloatingLabelTextField Style Protocol
 @available(iOS 13.0, *)
@@ -38,6 +50,7 @@ public struct FloatingLabelTextField: View {
     
     //MARK: Observed Object
     @ObservedObject private var notifier = FloatingLabelTextFieldNotifier()
+    @ObservedObject private var forceUpdater = FloatingLabelForceUpdater(forceUpdateState: false)
     
     //MARK: Properties
     private var placeholderText: String = ""
@@ -61,7 +74,11 @@ public struct FloatingLabelTextField: View {
                 Text(placeholderText)
                     .font(notifier.placeholderFont)
                     .multilineTextAlignment(notifier.textAlignment)
-                    .foregroundColor(notifier.placeholderColor)
+                    .foregroundColor(notifier.placeholderColor).onReceive(forceUpdater.$forceUpdateState) { (output) in
+                    if self.forceUpdater.forceUpdateState == true {
+                    self.isShowError = self.notifier.isRequiredField
+                    self.validtionChecker = self.currentError.condition
+                    }
             }
             
             if notifier.isSecureTextEntry {
@@ -300,6 +317,12 @@ extension FloatingLabelTextField {
 //MARK: Error Property Funcation
 @available(iOS 13.0, *)
 extension FloatingLabelTextField {
+    
+    public func isForceUpdate(_ forceUpdate: Bool) -> Self {
+        forceUpdater.forceUpdateState = forceUpdate
+        return self
+    }
+    
     /// Sets the is show error message.
     public func isShowError(_ show: Bool) -> Self {
         notifier.isShowError = show
