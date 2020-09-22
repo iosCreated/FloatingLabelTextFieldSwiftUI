@@ -80,6 +80,7 @@ public struct FloatingLabelTextField: View {
                     self.validtionChecker = self.currentError.condition
                     }
             }
+            }
             
             if notifier.isSecureTextEntry {
                 SecureField("", text: $textFieldValue.animation()) {
